@@ -462,3 +462,14 @@ body.internal-mode .internal-only {
         grid-template-columns: 1fr;
     }
 }
+
+/* Premium Loading Pulse */
+@keyframes pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.75; transform: scale(0.995); }
+    100% { opacity: 1; transform: scale(1); }
+}
+.loading-pulse {
+    animation: pulse 1.2s infinite ease-in-out;
+    pointer-events: none;
+}

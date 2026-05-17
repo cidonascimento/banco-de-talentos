@@ -1,0 +1,17 @@
+{
+  "name": "banco-de-talentos",
+  "version": "1.0.0",
+  "description": "ATS & CRM de Última Geração (Calculadora 2026)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test:engine": "node src/tests/test-engine.js",
+    "test:controller": "node src/tests/test-controller.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

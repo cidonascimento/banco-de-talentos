@@ -180,35 +180,62 @@ function calculatePJ(gross, expenses, pjBonusAnual, strategy) {
     };
 }
 
-function updateUI() {
-    let clt, pj;
+let activeRequestController = null;
 
-    if (state.baseRegime === 'CLT') {
-        clt = calculateCLT(state.baseValue, state.benefits, state.bonusAnual);
-        const target = clt.totalCash;
-        
-        let low = 0, high = target * 3, mid;
-        for(let i = 0; i < 30; i++) {
-            mid = (low + high) / 2;
-            if (calculatePJ(mid, state.expenses, state.pjBonusAnual, state.pjStrategy).totalCash < target) low = mid;
-            else high = mid;
+async function updateUI() {
+    if (activeRequestController) {
+        activeRequestController.abort();
+    }
+    activeRequestController = new AbortController();
+    const { signal } = activeRequestController;
+
+    const cards = document.querySelectorAll('.result-card');
+    cards.forEach(card => card.classList.add('loading-pulse'));
+
+    const userRole = document.body.classList.contains('internal-mode') ? 'RECURSOS_HUMANOS' : 'CANDIDATO';
+
+    try {
+        const response = await fetch('/api/v1/finance/calculate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-user-role': userRole
+            },
+            body: JSON.stringify({
+                baseRegime: state.baseRegime,
+                baseValue: state.baseValue,
+                benefits: state.benefits,
+                expenses: state.expenses,
+                bonusAnual: state.bonusAnual,
+                pjBonusAnual: state.pjBonusAnual,
+                pjStrategy: state.pjStrategy
+            }),
+            signal
+        });
+
+        if (!response.ok) {
+            throw new Error('Network error executing calculation');
         }
-        pj = calculatePJ(mid, state.expenses, state.pjBonusAnual, state.pjStrategy);
-        
+
+        const result = await response.json();
+        renderCalculationResult(result);
+    } catch (err) {
+        if (err.name !== 'AbortError') {
+            console.error('Calculation API failed:', err);
+        }
+    } finally {
+        cards.forEach(card => card.classList.remove('loading-pulse'));
+    }
+}
+
+function renderCalculationResult(result) {
+    const clt = result.clt;
+    const pj = result.pj;
+
+    if (result.baseRegime === 'CLT') {
         document.getElementById('clt-status').textContent = 'Base';
         document.getElementById('pj-status').textContent = 'Equivalente';
     } else {
-        pj = calculatePJ(state.baseValue, state.expenses, state.pjBonusAnual, state.pjStrategy);
-        const target = pj.totalCash;
-        
-        let low = 0, high = target * 3, mid;
-        for(let i = 0; i < 30; i++) {
-            mid = (low + high) / 2;
-            if (calculateCLT(mid, state.benefits, state.bonusAnual).totalCash < target) low = mid;
-            else high = mid;
-        }
-        clt = calculateCLT(mid, state.benefits, state.bonusAnual);
-        
         document.getElementById('pj-status').textContent = 'Base';
         document.getElementById('clt-status').textContent = 'Equivalente';
     }
@@ -232,14 +259,18 @@ function updateUI() {
     document.getElementById('clt-prov-vac').textContent = '+ ' + fmt.format(clt.pv13);
     document.getElementById('clt-prov-bonus').textContent = '+ ' + fmt.format(clt.pBonus);
     
-    // Employer
-    document.getElementById('clt-employer-sum').textContent = fmt.format(clt.employerCost);
-    document.getElementById('clt-base-val').textContent = fmt.format(clt.gross);
-    document.getElementById('clt-inss-pat').textContent = '+ ' + fmt.format(clt.inssP);
-    document.getElementById('clt-rat-ter').textContent = '+ ' + fmt.format(clt.ratT);
-    document.getElementById('clt-fgts-val').textContent = '+ ' + fmt.format(clt.fgtsFull);
-    document.getElementById('clt-prov-full').textContent = '+ ' + fmt.format(clt.provFull);
-    document.getElementById('clt-ben-full').textContent = '+ ' + fmt.format(clt.totalBen);
+    // Employer CLT
+    if (clt.employerCost !== undefined) {
+        document.getElementById('clt-employer-sum').textContent = fmt.format(clt.employerCost);
+        document.getElementById('clt-base-val').textContent = fmt.format(clt.gross);
+        document.getElementById('clt-inss-pat').textContent = '+ ' + fmt.format(clt.inssP);
+        document.getElementById('clt-rat-ter').textContent = '+ ' + fmt.format(clt.ratT);
+        document.getElementById('clt-fgts-val').textContent = '+ ' + fmt.format(clt.fgtsFull);
+        document.getElementById('clt-prov-full').textContent = '+ ' + fmt.format(clt.provFull);
+        document.getElementById('clt-ben-full').textContent = '+ ' + fmt.format(clt.totalBen);
+    } else {
+        document.getElementById('clt-employer-sum').textContent = '---';
+    }
 
     // Populate PJ
     document.getElementById('pj-gross-val').textContent = fmt.format(pj.gross);
@@ -306,11 +337,22 @@ function updateUI() {
     document.getElementById('pj-prov-bonus').textContent = '+ ' + fmt.format(pj.pBonus);
 
     // Employer PJ values
-    document.getElementById('pj-employer-sum').textContent = fmt.format(pj.employerCost);
-    document.getElementById('pj-gross-company-val').textContent = fmt.format(pj.gross);
+    if (pj.employerCost !== undefined) {
+        document.getElementById('pj-employer-sum').textContent = fmt.format(pj.employerCost);
+        document.getElementById('pj-gross-company-val').textContent = fmt.format(pj.gross);
+    } else {
+        document.getElementById('pj-employer-sum').textContent = '---';
+    }
 
     // Company Cost comparison percentages
-    updateCompanyCostComparison(clt.employerCost, pj.employerCost);
+    if (clt.employerCost !== undefined && pj.employerCost !== undefined) {
+        updateCompanyCostComparison(clt.employerCost, pj.employerCost);
+    } else {
+        const cltDiffEl = document.getElementById('clt-company-diff-pct');
+        const pjDiffEl = document.getElementById('pj-company-diff-pct');
+        if (cltDiffEl) setComparisonText(cltDiffEl, 'Visão Restrita RH', 'neutral');
+        if (pjDiffEl) setComparisonText(pjDiffEl, 'Visão Restrita RH', 'neutral');
+    }
     
     // Sync heights
     setTimeout(syncRowHeights, 50);
@@ -498,14 +540,14 @@ document.getElementById('btn-candidate').addEventListener('click', () => {
     document.body.classList.remove('internal-mode');
     document.getElementById('btn-candidate').classList.add('active');
     document.getElementById('btn-internal').classList.remove('active');
-    setTimeout(syncRowHeights, 50);
+    updateUI();
 });
 
 document.getElementById('btn-internal').addEventListener('click', () => {
     document.body.classList.add('internal-mode');
     document.getElementById('btn-internal').classList.add('active');
     document.getElementById('btn-candidate').classList.remove('active');
-    setTimeout(syncRowHeights, 50);
+    updateUI();
 });
 
 // Row height synchronization
