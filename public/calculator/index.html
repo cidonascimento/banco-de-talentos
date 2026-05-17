@@ -31,6 +31,14 @@
                     </div>
                 </div>
 
+                <div class="regime-toggle">
+                    <label>Estratégia Tributária PJ:</label>
+                    <div class="toggle-group">
+                        <button id="strat-anexo-iii" class="active">Anexo III (Fator R)</button>
+                        <button id="strat-anexo-v">Anexo V (Mínimo)</button>
+                    </div>
+                </div>
+
                 <div class="input-group">
                     <label id="salary-label">Salário Bruto CLT (R$)</label>
                     <input type="text" id="salary-input" value="10.000,00">
@@ -72,7 +80,7 @@
             <section class="results-panel">
                 <div class="comparison-grid">
                     <!-- CLT CARD -->
-                    <div class="result-card clt">
+                    <div class="result-card clt card">
                         <div class="card-header">
                             <h3 id="clt-status-label">Modelo CLT</h3>
                             <span class="badge" id="clt-status">Base</span>
@@ -105,7 +113,7 @@
 
                             <!-- Líquido Mensal Row -->
                             <div class="item highlight-net-row">
-                                <span>Líquido Mensal (Salário + Benefícios)</span>
+                                <span>Líquido Mensal<br>(Salário + Benefícios)</span>
                                 <span id="clt-net-monthly-display" class="positive">R$ 0,00</span>
                             </div>
 
@@ -126,7 +134,7 @@
 
                             <!-- Accordion: Custo Empresa (Internal Only) -->
                             <div class="accordion internal-only">
-                                <button class="accordion-header highlight-alt">
+                                <button class="accordion-header">
                                     <span>Custo Total Empresa</span>
                                     <span id="clt-employer-sum" class="highlight">R$ 0,00</span>
                                     <i class="chevron"></i>
@@ -138,13 +146,18 @@
                                     <div class="item"><span>FGTS (8.32%)</span> <span id="clt-fgts-val">+ R$ 0,00</span></div>
                                     <div class="item"><span>Provisões (F/13/Enc)</span> <span id="clt-prov-full">+ R$ 0,00</span></div>
                                     <div class="item"><span>Benefícios Diretos</span> <span id="clt-ben-full">+ R$ 0,00</span></div>
+                                    <div class="divider"></div>
+                                    <div class="item" style="margin-top: 10px; font-weight: 700; color: white;">
+                                        <span>Comparativo Empresa</span>
+                                        <span id="clt-company-diff-pct" class="positive">--</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- PJ CARD -->
-                    <div class="result-card pj">
+                    <div class="result-card pj card">
                         <div class="card-header">
                             <h3>Modelo PJ</h3>
                             <span class="badge" id="pj-status">Equivalente</span>
@@ -170,9 +183,22 @@
                                     <i class="chevron"></i>
                                 </button>
                                 <div class="accordion-content">
-                                    <div class="item"><span>DAS (Simples Nac.)</span> <span id="pj-das" class="negative">- R$ 0,00</span></div>
-                                    <div class="item"><span>IRRF/INSS (Pró-labore)</span> <span id="pj-pl-taxes" class="negative">- R$ 0,00</span></div>
-                                    <div class="item"><span>Contador/Outras Despesas</span> <span id="pj-exp-val" class="negative">- R$ 0,00</span></div>
+                                    <div class="item"><span>DAS (Simples Nacional)</span> <span id="pj-das" class="negative">- R$ 0,00</span></div>
+                                    <div class="item sub-item"><span>↳ CPP (Previdência Patronal)</span> <span id="pj-das-cpp" class="negative">- R$ 0,00</span></div>
+                                    <div class="item sub-item"><span>↳ ISS (Municipal)</span> <span id="pj-das-iss" class="negative">- R$ 0,00</span></div>
+                                    <div class="item sub-item"><span>↳ COFINS (Federal)</span> <span id="pj-das-cofins" class="negative">- R$ 0,00</span></div>
+                                    <div class="item sub-item"><span>↳ IRPJ (Federal)</span> <span id="pj-das-irpj" class="negative">- R$ 0,00</span></div>
+                                    <div class="item sub-item"><span>↳ CSLL (Federal)</span> <span id="pj-das-csll" class="negative">- R$ 0,00</span></div>
+                                    <div class="item sub-item"><span>↳ PIS (Federal)</span> <span id="pj-das-pis" class="negative">- R$ 0,00</span></div>
+                                    
+                                    <div class="item" style="margin-top: 10px;"><span>Encargos s/ Pró-labore</span> <span id="pj-pl-taxes" class="negative">- R$ 0,00</span></div>
+                                    <div class="item sub-item"><span>↳ INSS Pró-labore (11%)</span> <span id="pj-pl-inss" class="negative">- R$ 0,00</span></div>
+                                    <div class="item sub-item"><span>↳ IRRF Pró-labore</span> <span id="pj-pl-irrf" class="negative">- R$ 0,00</span></div>
+                                    
+                                    <div class="item" style="margin-top: 10px;"><span>Outras despesas</span> <span id="pj-exp-val" class="negative">- R$ 0,00</span></div>
+                                    <div class="item sub-item"><span>↳ Contabilidade</span> <span id="pj-exp-accounting" class="negative">- R$ 0,00</span></div>
+                                    <div class="item sub-item"><span>↳ TFE</span> <span id="pj-exp-tfe" class="negative">- R$ 0,00</span></div>
+                                    <div class="item sub-item"><span>↳ Certificado digital</span> <span id="pj-exp-cert" class="negative">- R$ 0,00</span></div>
                                 </div>
                             </div>
 
@@ -185,12 +211,29 @@
                             <!-- Accordion: Rendimentos Provisionados PJ -->
                             <div class="accordion">
                                 <button class="accordion-header">
-                                    <span>Rendimentos Provisionados PJ</span>
+                                    <span>Rendimentos Provisionados</span>
                                     <span id="pj-prov-sum" class="positive">+ R$ 0,00</span>
                                     <i class="chevron"></i>
                                 </button>
                                 <div class="accordion-content">
                                     <div class="item"><span>Bônus/PLR (1/12)</span> <span id="pj-prov-bonus" class="positive">+ R$ 0,00</span></div>
+                                </div>
+                            </div>
+
+                            <!-- Accordion: Custo Empresa (Internal Only) -->
+                            <div class="accordion internal-only">
+                                <button class="accordion-header">
+                                    <span>Custo Total Empresa</span>
+                                    <span id="pj-employer-sum" class="highlight">R$ 0,00</span>
+                                    <i class="chevron"></i>
+                                </button>
+                                <div class="accordion-content">
+                                    <div class="item"><span>Faturamento Bruto PJ</span> <span id="pj-gross-company-val">R$ 0,00</span></div>
+                                    <div class="divider"></div>
+                                    <div class="item" style="margin-top: 10px; font-weight: 700; color: white;">
+                                        <span>Comparativo Empresa</span>
+                                        <span id="pj-company-diff-pct" class="positive">--</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
