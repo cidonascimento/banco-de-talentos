@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Equivalência 2026 - Banco de Talentos</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-mode internal-mode"> <!-- Default to Internal Mode for detailed view -->
+    <div class="container">
+        <header>
+            <h1>Calculadora de Equivalência <span>2026</span></h1>
+            <p>Informe um valor e descubra a equivalência real entre CLT e PJ.</p>
+            <div class="view-toggle">
+                <button id="btn-candidate">Visão Candidato</button>
+                <button id="btn-internal" class="active">Visão Interna (RH/Diretoria)</button>
+            </div>
+        </header>
+
+        <main class="grid-layout">
+            <!-- INPUT SECTION -->
+            <section class="card inputs-panel">
+                <h2>Entrada de Dados</h2>
+                
+                <div class="regime-toggle">
+                    <label>Regime Base:</label>
+                    <div class="toggle-group">
+                        <button id="base-clt" class="active">CLT</button>
+                        <button id="base-pj">PJ</button>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label id="salary-label">Salário Bruto CLT (R$)</label>
+                    <input type="text" id="salary-input" value="10.000,00">
+                </div>
+
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="clt-benefits">Benefícios</button>
+                    <button class="tab-btn" data-tab="pj-expenses">Custos PJ</button>
+                </div>
+
+                <div id="clt-benefits" class="tab-content active">
+                    <div class="benefit-item">
+                        <label>Vale Refeição/Alim. (Mês) (R$)</label>
+                        <input type="text" class="benefit-input" data-key="meal" value="1.200,00">
+                    </div>
+                    <div class="benefit-item">
+                        <label>Plano de Saúde (Mês) (R$)</label>
+                        <input type="text" class="benefit-input" data-key="health" value="500,00">
+                    </div>
+                    <div class="benefit-item">
+                        <label>Bônus/PLR Anual (R$)</label>
+                        <input type="text" id="bonus-input" value="10.000,00">
+                    </div>
+                </div>
+
+                <div id="pj-expenses" class="tab-content">
+                    <div class="benefit-item">
+                        <label>Contador Mensal (R$)</label>
+                        <input type="text" class="expense-input" data-key="accounting" value="250,00">
+                    </div>
+                    <div class="benefit-item">
+                        <label>Bônus/PLR Anual PJ (R$)</label>
+                        <input type="text" id="pj-bonus-input" value="0,00">
+                    </div>
+                </div>
+            </section>
+
+            <!-- RESULTS SECTION -->
+            <section class="results-panel">
+                <div class="comparison-grid">
+                    <!-- CLT CARD -->
+                    <div class="result-card clt">
+                        <div class="card-header">
+                            <h3 id="clt-status-label">Modelo CLT</h3>
+                            <span class="badge" id="clt-status">Base</span>
+                        </div>
+
+                        <div class="main-display">
+                            <div class="display-item">
+                                <span class="label">Salário Base</span>
+                                <h2 id="clt-gross-val">R$ 0,00</h2>
+                            </div>
+                            <div class="display-item highlight-net">
+                                <span class="label">Líquido + Provisões</span>
+                                <h2 id="clt-net-val">R$ 0,00</h2>
+                            </div>
+                        </div>
+                        
+                        <div class="breakdown">
+                            <!-- Accordion: Encargos -->
+                            <div class="accordion">
+                                <button class="accordion-header">
+                                    <span>Encargos (INSS + IRRF)</span>
+                                    <span id="clt-encargos-sum" class="negative">- R$ 0,00</span>
+                                    <i class="chevron"></i>
+                                </button>
+                                <div class="accordion-content">
+                                    <div class="item"><span>INSS</span> <span id="clt-inss" class="negative">- R$ 0,00</span></div>
+                                    <div class="item"><span>IRRF</span> <span id="clt-irrf" class="negative">- R$ 0,00</span></div>
+                                </div>
+                            </div>
+
+                            <!-- Líquido Mensal Row -->
+                            <div class="item highlight-net-row">
+                                <span>Líquido Mensal (Salário + Benefícios)</span>
+                                <span id="clt-net-monthly-display" class="positive">R$ 0,00</span>
+                            </div>
+
+                            <!-- Accordion: Rendimentos Provisionados -->
+                            <div class="accordion">
+                                <button class="accordion-header">
+                                    <span>Rendimentos Provisionados</span>
+                                    <span id="clt-prov-sum" class="positive">+ R$ 0,00</span>
+                                    <i class="chevron"></i>
+                                </button>
+                                <div class="accordion-content">
+                                    <div class="item"><span>FGTS (Depósito)</span> <span id="clt-fgts-cand" class="positive">+ R$ 0,00</span></div>
+                                    <div class="item"><span>13º Salário (1/12)</span> <span id="clt-prov-13" class="positive">+ R$ 0,00</span></div>
+                                    <div class="item"><span>1/3 Férias (1/12)</span> <span id="clt-prov-vac" class="positive">+ R$ 0,00</span></div>
+                                    <div class="item"><span>Bônus/PLR (1/12)</span> <span id="clt-prov-bonus" class="positive">+ R$ 0,00</span></div>
+                                </div>
+                            </div>
+
+                            <!-- Accordion: Custo Empresa (Internal Only) -->
+                            <div class="accordion internal-only">
+                                <button class="accordion-header highlight-alt">
+                                    <span>Custo Total Empresa</span>
+                                    <span id="clt-employer-sum" class="highlight">R$ 0,00</span>
+                                    <i class="chevron"></i>
+                                </button>
+                                <div class="accordion-content">
+                                    <div class="item"><span>Salário Base</span> <span id="clt-base-val">R$ 0,00</span></div>
+                                    <div class="item"><span>INSS Patronal (20%)</span> <span id="clt-inss-pat">+ R$ 0,00</span></div>
+                                    <div class="item"><span>RAT/Terceiros (7.8%)</span> <span id="clt-rat-ter">+ R$ 0,00</span></div>
+                                    <div class="item"><span>FGTS (8.32%)</span> <span id="clt-fgts-val">+ R$ 0,00</span></div>
+                                    <div class="item"><span>Provisões (F/13/Enc)</span> <span id="clt-prov-full">+ R$ 0,00</span></div>
+                                    <div class="item"><span>Benefícios Diretos</span> <span id="clt-ben-full">+ R$ 0,00</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PJ CARD -->
+                    <div class="result-card pj">
+                        <div class="card-header">
+                            <h3>Modelo PJ</h3>
+                            <span class="badge" id="pj-status">Equivalente</span>
+                        </div>
+
+                        <div class="main-display">
+                            <div class="display-item">
+                                <span class="label">Faturamento PJ</span>
+                                <h2 id="pj-gross-val">R$ 0,00</h2>
+                            </div>
+                            <div class="display-item highlight-net">
+                                <span class="label">Líquido + Provisões</span>
+                                <h2 id="pj-net-val">R$ 0,00</h2>
+                            </div>
+                        </div>
+
+                        <div class="breakdown">
+                            <!-- Accordion: Impostos e Custos PJ -->
+                            <div class="accordion">
+                                <button class="accordion-header">
+                                    <span>Impostos e Custos PJ</span>
+                                    <span id="pj-costs-sum" class="negative">- R$ 0,00</span>
+                                    <i class="chevron"></i>
+                                </button>
+                                <div class="accordion-content">
+                                    <div class="item"><span>DAS (Simples Nac.)</span> <span id="pj-das" class="negative">- R$ 0,00</span></div>
+                                    <div class="item"><span>IRRF/INSS (Pró-labore)</span> <span id="pj-pl-taxes" class="negative">- R$ 0,00</span></div>
+                                    <div class="item"><span>Contador/Outras Despesas</span> <span id="pj-exp-val" class="negative">- R$ 0,00</span></div>
+                                </div>
+                            </div>
+
+                            <!-- Líquido Mensal Row -->
+                            <div class="item highlight-net-row">
+                                <span>Líquido Mensal PJ</span>
+                                <span id="pj-net-monthly-display" class="positive">R$ 0,00</span>
+                            </div>
+
+                            <!-- Accordion: Rendimentos Provisionados PJ -->
+                            <div class="accordion">
+                                <button class="accordion-header">
+                                    <span>Rendimentos Provisionados PJ</span>
+                                    <span id="pj-prov-sum" class="positive">+ R$ 0,00</span>
+                                    <i class="chevron"></i>
+                                </button>
+                                <div class="accordion-content">
+                                    <div class="item"><span>Bônus/PLR (1/12)</span> <span id="pj-prov-bonus" class="positive">+ R$ 0,00</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
